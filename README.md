@@ -1,5 +1,8 @@
 # Conway's Game of Life in Haskell
 
+A 'Glider' in action:
+![A Glider in action](kapture.gif)
+
 ## Build it:
 
 ```bash
