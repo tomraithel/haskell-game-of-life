@@ -2,24 +2,28 @@ module Main where
 
 import Control.Monad (forever)
 import qualified Data.List as L
-import qualified Data.List.Split as S
-import qualified Data.Map as M
 
-data Coord = Coord Int Int deriving(Ord, Eq, Show)
+data Coord = Coord Int Int
 data Cell = Dead | Alive deriving(Ord, Eq)
-data Grid = Grid Int (M.Map Coord Cell) deriving(Ord, Eq)
+data Grid = Grid [[Cell]] deriving(Ord, Eq)
 
 instance Show Cell where
   show Dead = " □ "
   show _ = " ■ "
 
 instance Show Grid where
-  show (Grid s m) = L.intercalate "\n" $ map renderLine ls where
-    ls = S.chunksOf s (M.elems m)
-    renderLine l = L.concat $ L.map show l
+  show (Grid css) = L.intercalate "\n" $ L.map renderLine css where
+    renderLine cs = L.concat $ L.map show cs
+
+setCell :: Coord -> Cell -> Grid -> Grid
+setCell (Coord x y) cell (Grid css) = (Grid newRows)
+ where
+  newRows = L.take y css ++ newRow : drop (y + 1) css
+  newRow  = L.take x cs ++ cell : drop (x + 1) cs
+  cs      = css !! y
 
 nextTick :: Grid -> Grid
-nextTick = id
+nextTick = (setCell (Coord 9 2) Alive) . (setCell (Coord 9 9) Alive)
 
 runGame :: Grid -> IO ()
 runGame grid = forever $ do
@@ -29,9 +33,8 @@ runGame grid = forever $ do
   return (nextTick grid) >>= runGame
 
 makeGrid :: Int -> Grid
-makeGrid s = Grid
-  s
-  (M.fromList [ (Coord x y, Dead) | x <- [0 .. (s - 1)], y <- [0 .. (s - 1)] ])
+makeGrid s = Grid (L.map (const (L.map (const Dead) l)) l)
+  where l = [0 .. (s - 1)]
 
 main :: IO ()
 main = runGame $ (makeGrid 10)
